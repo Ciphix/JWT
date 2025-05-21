@@ -10,6 +10,8 @@
 package jwt.actions;
 
 import java.security.interfaces.RSAPrivateKey;
+import java.util.Map; 
+import java.util.HashMap; 
 import java.util.Iterator;
 import java.util.List;
 import com.auth0.jwt.JWT;
@@ -31,6 +33,7 @@ import jwt.proxies.PublicClaimDecimal;
 import jwt.proxies.PublicClaimInteger;
 import jwt.proxies.PublicClaimLong;
 import jwt.proxies.PublicClaimString;
+import jwt.proxies.PublicClaimStringArray;
 import jwt.proxies.constants.Constants;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
 
@@ -92,63 +95,73 @@ public class GenerateJWT extends CustomJavaAction<java.lang.String>
 		        .withJWTId(jwtObject.getjti())
 		        .withNotBefore(jwtObject.getnbf())
 		        .withIssuedAt(jwtObject.getiat());
-		
+
 		String kid = jwtObject.getkid();
-		
 		if (kid != null) {
 			builder.withKeyId(kid);
 		}
-		
+
+		/*--- set additional header claims ---*/
+		List<IMendixObject> headerClaims = Core.retrieveByPath(this.context(), jwtObject.getMendixObject(), "JWT.ClaimHeader_JWT");
+		if (headerClaims.size() > 0)
+		{
+			logger.debug("Adding " + headerClaims.size() + " headers claims.");
+			Map<String,Object> headerClaimsMap = new HashMap<String,Object>();
+			Iterator<IMendixObject> headerClaimIterator = headerClaims.iterator();
+			while(headerClaimIterator.hasNext()) {
+				IMendixObject claimObject = headerClaimIterator.next();
+				PublicClaim claim = PublicClaim.initialize(this.context(), claimObject);
+			
+				if (claim.getClaim() != null) {
+					Object claimValue = GetClaimValueObject(claim);
+					if (claimValue != null)
+					{
+						logger.debug("Adding header claim " + claim.getClaim() + " of entity " + claim.getClass().getSimpleName() + ".");
+						headerClaimsMap.put(claim.getClaim(), claimValue);
+					}
+					else{
+						logger.warn("Incorrect specialization of PublicClaim detected for claim " + claim.getClaim() + ".");
+					}
+				}
+			}
+			if (headerClaimsMap.size() > 0)
+			{
+				builder.withHeader(headerClaimsMap);
+			}
+		}
+
+		/* --- add audiences  ---*/
 		String[] audienceList = new AudienceListToStringArrayConverter().convert(this.context(), jwtObject);
 		logger.debug("Adding audience claim with " + audienceList.length + " audiences.");
 		builder.withAudience(audienceList);
 		
+		/*--- add payload claims  ---*/
 		List<IMendixObject> claims = Core.retrieveByPath(this.context(), jwtObject.getMendixObject(), "JWT.Claim_JWT");
 		logger.debug("Adding " + claims.size() + " public claims.");
-		
-		Iterator<IMendixObject> claimIterator = claims.iterator();
-		
-		while(claimIterator.hasNext()) {
-			IMendixObject claimObject = claimIterator.next();
+		Map<String,Object> payloadClaimsMap = new HashMap<String,Object>();
+		Iterator<IMendixObject> payloadClaimIterator = claims.iterator();
+		while(payloadClaimIterator.hasNext()) {
+			IMendixObject claimObject = payloadClaimIterator.next();
 			PublicClaim claim = PublicClaim.initialize(this.context(), claimObject);
-			
-			if (claim.getClaim() == null) {
-				logger.error("Empty public claim found in JWT input object.");
-				throw new DataValidationRuntimeException("Empty public claim found in JWT input object.");
+		
+			if (claim.getClaim() != null) {
+				Object claimValue = GetClaimValueObject(claim);
+				if (claimValue != null)
+				{
+					logger.debug("Adding claim " + claim.getClaim() + " of entity " + claim.getClass().getSimpleName() + ".");
+					payloadClaimsMap.put(claim.getClaim(), claimValue);
+				}
+				else{
+					logger.warn("Incorrect specialization of PublicClaim detected for claim " + claim.getClaim() + ".");
+				}
 			}
-			
-			RegisteredClaimIdentifier registeredClaimIdentifier = new RegisteredClaimIdentifier();
-			
-			if (registeredClaimIdentifier.identify(claim.getClaim())) {
-				logger.warn("Registered claim " + claim.getClaim() + " found in Public Claims. Claim will be skipped.");
-				continue;
-			}
-			
-			logger.debug("Adding claim " + claim.getClaim() + " of entity " + claim.getClass().getSimpleName() + ".");
-			
-			if (claim.getClass() == PublicClaimBoolean.class) {
-				PublicClaimBoolean claimBoolean = PublicClaimBoolean.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimBoolean.getClaim(), claimBoolean.getValue());
-			} else if (claim.getClass() == PublicClaimDate.class) {
-				PublicClaimDate claimDate = PublicClaimDate.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimDate.getClaim(), claimDate.getValue());
-			} else if (claim.getClass() == PublicClaimInteger.class) {
-				PublicClaimInteger claimInteger = PublicClaimInteger.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimInteger.getClaim(), claimInteger.getValue());
-			} else if (claim.getClass() == PublicClaimLong.class) {
-				PublicClaimLong claimLong = PublicClaimLong.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimLong.getClaim(), claimLong.getValue());
-			} else if (claim.getClass() == PublicClaimDecimal.class) {
-				PublicClaimDecimal claimDecimal = PublicClaimDecimal.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimDecimal.getClaim(), claimDecimal.getValue().doubleValue());
-			} else if (claim.getClass() == PublicClaimString.class) {
-				PublicClaimString claimString = PublicClaimString.initialize(this.context(), claim.getMendixObject());
-				builder.withClaim(claimString.getClaim(), claimString.getValue());
-			} else {
-				logger.warn("Incorrect specialization of PublicClaim detected for claim " + claim.getClaim() + ".");
-			}			
+		}
+		if (payloadClaimsMap.size() > 0)
+		{
+			builder.withPayload(payloadClaimsMap);
 		}
 		
+		/*--- sign the token ---*/
 		String token = builder.sign(alg);
 		
 		logger.debug("Token successfully generated.");
@@ -168,5 +181,39 @@ public class GenerateJWT extends CustomJavaAction<java.lang.String>
 	}
 
 	// BEGIN EXTRA CODE
+
+	/*--- generic method to get claim value object ---*/
+	private Object GetClaimValueObject(PublicClaim claim)
+	{
+		if (claim.getClass() == PublicClaimBoolean.class) {
+			PublicClaimBoolean claimBoolean = PublicClaimBoolean.initialize(this.context(), claim.getMendixObject());
+			return(claimBoolean.getValue());
+		} else if (claim.getClass() == PublicClaimDate.class) {
+			PublicClaimDate claimDate = PublicClaimDate.initialize(this.context(), claim.getMendixObject());
+			return(claimDate.getValue());
+		} else if (claim.getClass() == PublicClaimInteger.class) {
+			PublicClaimInteger claimInteger = PublicClaimInteger.initialize(this.context(), claim.getMendixObject());
+			return(claimInteger.getValue());
+		} else if (claim.getClass() == PublicClaimLong.class) {
+			PublicClaimLong claimLong = PublicClaimLong.initialize(this.context(), claim.getMendixObject());
+			return(claimLong.getValue());
+		} else if (claim.getClass() == PublicClaimDecimal.class) {
+			PublicClaimDecimal claimDecimal = PublicClaimDecimal.initialize(this.context(), claim.getMendixObject());
+			return(claimDecimal.getValue().doubleValue());
+		} else if (claim.getClass() == PublicClaimString.class) {
+			PublicClaimString claimString = PublicClaimString.initialize(this.context(), claim.getMendixObject());
+			return(claimString.getValue());
+		} else if (claim.getClass() == PublicClaimStringArray.class) {
+			/*--- new claim type array of strings */
+			PublicClaimStringArray claimStringArray = PublicClaimStringArray.initialize(this.context(), claim.getMendixObject());
+			String[] parts = claimStringArray.getValue().split(",");
+			return(parts);
+
+		} else {
+			return(null);
+		}			
+	}
+	/*--- CUSTOMIZATION END (use separate method to get claim value object) */
+	
 	// END EXTRA CODE
 }
