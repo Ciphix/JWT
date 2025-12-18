@@ -10,42 +10,52 @@
 package jwt.actions;
 
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.usecases.JWTDecoder;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Decodes a JWT string into a plain text JSON for the header and payload. This enables the user to implement a specific JSON mapping that decodes the header or payload. Throws an exception when the token could not be decoded or verified.
  */
-public class DecodeVerifyJWTPlainText extends CustomJavaAction<IMendixObject>
+public class DecodeVerifyJWTPlainText extends UserAction<IMendixObject>
 {
-	private java.lang.String token;
-	private java.lang.String secret;
-	private jwt.proxies.ENU_Algorithm algorithm;
-	private IMendixObject __claimsToVerify;
-	private jwt.proxies.JWT claimsToVerify;
-	private IMendixObject __publicKey;
-	private jwt.proxies.JWTRSAPublicKey publicKey;
-	private java.lang.Long leeway;
+	private final java.lang.String token;
+	private final java.lang.String secret;
+	private final jwt.proxies.ENU_Algorithm algorithm;
+	/** @deprecated use claimsToVerify.getMendixObject() instead. */
+	@java.lang.Deprecated(forRemoval = true)
+	private final IMendixObject __claimsToVerify;
+	private final jwt.proxies.JWT claimsToVerify;
+	/** @deprecated use publicKey.getMendixObject() instead. */
+	@java.lang.Deprecated(forRemoval = true)
+	private final IMendixObject __publicKey;
+	private final jwt.proxies.JWTRSAPublicKey publicKey;
+	private final java.lang.Long leeway;
 
-	public DecodeVerifyJWTPlainText(IContext context, java.lang.String token, java.lang.String secret, java.lang.String algorithm, IMendixObject claimsToVerify, IMendixObject publicKey, java.lang.Long leeway)
+	public DecodeVerifyJWTPlainText(
+		IContext context,
+		java.lang.String _token,
+		java.lang.String _secret,
+		java.lang.String _algorithm,
+		IMendixObject _claimsToVerify,
+		IMendixObject _publicKey,
+		java.lang.Long _leeway
+	)
 	{
 		super(context);
-		this.token = token;
-		this.secret = secret;
-		this.algorithm = algorithm == null ? null : jwt.proxies.ENU_Algorithm.valueOf(algorithm);
-		this.__claimsToVerify = claimsToVerify;
-		this.__publicKey = publicKey;
-		this.leeway = leeway;
+		this.token = _token;
+		this.secret = _secret;
+		this.algorithm = _algorithm == null ? null : jwt.proxies.ENU_Algorithm.valueOf(_algorithm);
+		this.__claimsToVerify = _claimsToVerify;
+		this.claimsToVerify = _claimsToVerify == null ? null : jwt.proxies.JWT.initialize(getContext(), _claimsToVerify);
+		this.__publicKey = _publicKey;
+		this.publicKey = _publicKey == null ? null : jwt.proxies.JWTRSAPublicKey.initialize(getContext(), _publicKey);
+		this.leeway = _leeway;
 	}
 
 	@java.lang.Override
 	public IMendixObject executeAction() throws Exception
 	{
-		this.claimsToVerify = this.__claimsToVerify == null ? null : jwt.proxies.JWT.initialize(getContext(), __claimsToVerify);
-
-		this.publicKey = this.__publicKey == null ? null : jwt.proxies.JWTRSAPublicKey.initialize(getContext(), __publicKey);
-
 		// BEGIN USER CODE
 		JWTDecoder jwtDecoder = new JWTDecoder(this.context(), token);
 		IMendixObject jwtPlainText = jwtDecoder.verifyAndDecodePlainText(secret, algorithm, claimsToVerify, publicKey, leeway);

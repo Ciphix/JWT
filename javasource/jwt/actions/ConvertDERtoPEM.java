@@ -16,30 +16,34 @@ import org.bouncycastle.util.io.pem.PemWriter;
 import java.io.ByteArrayOutputStream;
 import com.mendix.core.Core;
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.helpers.RSAKeyPairReader;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
 import com.mendix.systemwideinterfaces.core.UserException;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Converts a binary public or private key (DER format) to PEM (base64 encoded). Returns a String containing the PEM encoded certificate (X509 for public key and PKCS1 for private key).
  */
-public class ConvertDERtoPEM extends CustomJavaAction<java.lang.String>
+public class ConvertDERtoPEM extends UserAction<java.lang.String>
 {
-	private IMendixObject __derKey;
-	private system.proxies.FileDocument derKey;
+	/** @deprecated use derKey.getMendixObject() instead. */
+	@java.lang.Deprecated(forRemoval = true)
+	private final IMendixObject __derKey;
+	private final system.proxies.FileDocument derKey;
 
-	public ConvertDERtoPEM(IContext context, IMendixObject derKey)
+	public ConvertDERtoPEM(
+		IContext context,
+		IMendixObject _derKey
+	)
 	{
 		super(context);
-		this.__derKey = derKey;
+		this.__derKey = _derKey;
+		this.derKey = _derKey == null ? null : system.proxies.FileDocument.initialize(getContext(), _derKey);
 	}
 
 	@java.lang.Override
 	public java.lang.String executeAction() throws Exception
 	{
-		this.derKey = this.__derKey == null ? null : system.proxies.FileDocument.initialize(getContext(), __derKey);
-
 		// BEGIN USER CODE
 		derKey.getClass();
 		RSAKeyPairReader rsaKeyPairReader = new RSAKeyPairReader();

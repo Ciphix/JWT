@@ -10,25 +10,30 @@
 package jwt.actions;
 
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.helpers.RSAKeyPairGenerator;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Generates a new 2048 bits RSA key pair. The public key is stored in X509 format and the private key in PKCS8 format.
  */
-public class GenerateRSAKeyPair extends CustomJavaAction<IMendixObject>
+public class GenerateRSAKeyPair extends UserAction<IMendixObject>
 {
-	private java.lang.String issuer;
-	private java.lang.String subject;
-	private java.lang.Long yearsValidity;
+	private final java.lang.String issuer;
+	private final java.lang.String subject;
+	private final java.lang.Long yearsValidity;
 
-	public GenerateRSAKeyPair(IContext context, java.lang.String issuer, java.lang.String subject, java.lang.Long yearsValidity)
+	public GenerateRSAKeyPair(
+		IContext context,
+		java.lang.String _issuer,
+		java.lang.String _subject,
+		java.lang.Long _yearsValidity
+	)
 	{
 		super(context);
-		this.issuer = issuer;
-		this.subject = subject;
-		this.yearsValidity = yearsValidity;
+		this.issuer = _issuer;
+		this.subject = _subject;
+		this.yearsValidity = _yearsValidity;
 	}
 
 	@java.lang.Override

@@ -12,23 +12,28 @@ package objectcomparator.actions;
 import com.mendix.core.Core;
 import com.mendix.logging.ILogNode;
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import objectcomparator.helpers.Comparator;
 import objectcomparator.repositories.MendixObjectRepository;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
-public class ObjectComparator extends CustomJavaAction<java.lang.Boolean>
+public class ObjectComparator extends UserAction<java.lang.Boolean>
 {
-	private IMendixObject ExpectedObject;
-	private IMendixObject ActualObject;
-	private java.lang.Boolean IncludeAssociatedObjects;
+	private final IMendixObject ExpectedObject;
+	private final IMendixObject ActualObject;
+	private final java.lang.Boolean IncludeAssociatedObjects;
 
-	public ObjectComparator(IContext context, IMendixObject ExpectedObject, IMendixObject ActualObject, java.lang.Boolean IncludeAssociatedObjects)
+	public ObjectComparator(
+		IContext context,
+		IMendixObject _expectedObject,
+		IMendixObject _actualObject,
+		java.lang.Boolean _includeAssociatedObjects
+	)
 	{
 		super(context);
-		this.ExpectedObject = ExpectedObject;
-		this.ActualObject = ActualObject;
-		this.IncludeAssociatedObjects = IncludeAssociatedObjects;
+		this.ExpectedObject = _expectedObject;
+		this.ActualObject = _actualObject;
+		this.IncludeAssociatedObjects = _includeAssociatedObjects;
 	}
 
 	@java.lang.Override

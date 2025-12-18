@@ -19,7 +19,6 @@ import com.mendix.core.Core;
 import com.mendix.logging.ILogNode;
 import com.mendix.systemwideinterfaces.core.DataValidationRuntimeException;
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.helpers.AlgorithmParser;
 import jwt.helpers.AudienceListToStringArrayConverter;
 import jwt.helpers.RSAKeyPairReader;
@@ -33,35 +32,44 @@ import jwt.proxies.PublicClaimLong;
 import jwt.proxies.PublicClaimString;
 import jwt.proxies.constants.Constants;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Generates a JWT token string from a JWT object. Make sure all inputs are specified correctly. Token generation without specifying a secret, is not allowed.
  */
-public class GenerateJWT extends CustomJavaAction<java.lang.String>
+public class GenerateJWT extends UserAction<java.lang.String>
 {
-	private IMendixObject __jwtObject;
-	private jwt.proxies.JWT jwtObject;
-	private java.lang.String secret;
-	private jwt.proxies.ENU_Algorithm algorithm;
-	private IMendixObject __privateKey;
-	private jwt.proxies.JWTRSAPrivateKey privateKey;
+	/** @deprecated use jwtObject.getMendixObject() instead. */
+	@java.lang.Deprecated(forRemoval = true)
+	private final IMendixObject __jwtObject;
+	private final jwt.proxies.JWT jwtObject;
+	private final java.lang.String secret;
+	private final jwt.proxies.ENU_Algorithm algorithm;
+	/** @deprecated use privateKey.getMendixObject() instead. */
+	@java.lang.Deprecated(forRemoval = true)
+	private final IMendixObject __privateKey;
+	private final jwt.proxies.JWTRSAPrivateKey privateKey;
 
-	public GenerateJWT(IContext context, IMendixObject jwtObject, java.lang.String secret, java.lang.String algorithm, IMendixObject privateKey)
+	public GenerateJWT(
+		IContext context,
+		IMendixObject _jwtObject,
+		java.lang.String _secret,
+		java.lang.String _algorithm,
+		IMendixObject _privateKey
+	)
 	{
 		super(context);
-		this.__jwtObject = jwtObject;
-		this.secret = secret;
-		this.algorithm = algorithm == null ? null : jwt.proxies.ENU_Algorithm.valueOf(algorithm);
-		this.__privateKey = privateKey;
+		this.__jwtObject = _jwtObject;
+		this.jwtObject = _jwtObject == null ? null : jwt.proxies.JWT.initialize(getContext(), _jwtObject);
+		this.secret = _secret;
+		this.algorithm = _algorithm == null ? null : jwt.proxies.ENU_Algorithm.valueOf(_algorithm);
+		this.__privateKey = _privateKey;
+		this.privateKey = _privateKey == null ? null : jwt.proxies.JWTRSAPrivateKey.initialize(getContext(), _privateKey);
 	}
 
 	@java.lang.Override
 	public java.lang.String executeAction() throws Exception
 	{
-		this.jwtObject = this.__jwtObject == null ? null : jwt.proxies.JWT.initialize(getContext(), __jwtObject);
-
-		this.privateKey = this.__privateKey == null ? null : jwt.proxies.JWTRSAPrivateKey.initialize(getContext(), __privateKey);
-
 		// BEGIN USER CODE
 		ILogNode logger = Core.getLogger(Constants.getLOGNODE());
 		

@@ -10,21 +10,24 @@
 package jwt.actions;
 
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.usecases.JWTDecoder;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Decodes a JWT string into a JWT object. Throws an exception when the token could not be decoded.
  */
-public class DecodeJWTPlainText extends CustomJavaAction<IMendixObject>
+public class DecodeJWTPlainText extends UserAction<IMendixObject>
 {
-	private java.lang.String token;
+	private final java.lang.String token;
 
-	public DecodeJWTPlainText(IContext context, java.lang.String token)
+	public DecodeJWTPlainText(
+		IContext context,
+		java.lang.String _token
+	)
 	{
 		super(context);
-		this.token = token;
+		this.token = _token;
 	}
 
 	@java.lang.Override

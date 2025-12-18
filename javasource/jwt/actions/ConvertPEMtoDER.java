@@ -23,28 +23,33 @@ import org.bouncycastle.util.io.pem.PemReader;
 import com.mendix.core.Core;
 import com.mendix.logging.ILogNode;
 import com.mendix.systemwideinterfaces.core.IContext;
-import com.mendix.webui.CustomJavaAction;
 import jwt.proxies.JWTRSAPrivateKey;
 import jwt.proxies.JWTRSAPublicKey;
 import system.proxies.FileDocument;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
 import com.mendix.systemwideinterfaces.core.UserException;
+import com.mendix.systemwideinterfaces.core.UserAction;
 
 /**
  * Specify key type (public or private) and enter the String for the PEM file. The action returns a FileDocument. When key type is public, it returns a JWTRSAPublicKey object, if private it returns a JWTRSAPrivateKey. If key type is empty, an exception is thrown.
  */
-public class ConvertPEMtoDER extends CustomJavaAction<IMendixObject>
+public class ConvertPEMtoDER extends UserAction<IMendixObject>
 {
-	private java.lang.String pemKey;
-	private jwt.proxies.ENU_KeyType keyType;
-	private java.lang.String outputFileName;
+	private final java.lang.String pemKey;
+	private final jwt.proxies.ENU_KeyType keyType;
+	private final java.lang.String outputFileName;
 
-	public ConvertPEMtoDER(IContext context, java.lang.String pemKey, java.lang.String keyType, java.lang.String outputFileName)
+	public ConvertPEMtoDER(
+		IContext context,
+		java.lang.String _pemKey,
+		java.lang.String _keyType,
+		java.lang.String _outputFileName
+	)
 	{
 		super(context);
-		this.pemKey = pemKey;
-		this.keyType = keyType == null ? null : jwt.proxies.ENU_KeyType.valueOf(keyType);
-		this.outputFileName = outputFileName;
+		this.pemKey = _pemKey;
+		this.keyType = _keyType == null ? null : jwt.proxies.ENU_KeyType.valueOf(_keyType);
+		this.outputFileName = _outputFileName;
 	}
 
 	@java.lang.Override
