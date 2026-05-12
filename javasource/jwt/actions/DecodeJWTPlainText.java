@@ -34,7 +34,7 @@ public class DecodeJWTPlainText extends UserAction<IMendixObject>
 	public IMendixObject executeAction() throws Exception
 	{
 		// BEGIN USER CODE
-		JWTDecoder jwtDecoder = new JWTDecoder(this.context(), token);
+		JWTDecoder jwtDecoder = new JWTDecoder(getContext(), token);
 		return jwtDecoder.decodePlainText();
 		// END USER CODE
 	}

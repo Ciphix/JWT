@@ -50,9 +50,9 @@ public class GenerateRSAPrivateKey extends UserAction<IMendixObject>
 		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(rsaPrivateKey.getEncoded());
 		byte[] privateKeyPKCS1 = privateKeyInfo.toASN1Primitive().getEncoded();
 		
-		JWTRSAPrivateKey privateKey = new JWTRSAPrivateKey(this.context());
-		Core.commit(this.context(), privateKey.getMendixObject());
-		Core.storeFileDocumentContent(this.context(), privateKey.getMendixObject(), new ByteArrayInputStream(privateKeyPKCS1));
+		JWTRSAPrivateKey privateKey = new JWTRSAPrivateKey(getContext());
+		Core.commit(getContext(), privateKey.getMendixObject());
+		Core.storeFileDocumentContent(getContext(), privateKey.getMendixObject(), new ByteArrayInputStream(privateKeyPKCS1));
 		return privateKey.getMendixObject();
 		// END USER CODE
 	}

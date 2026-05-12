@@ -48,7 +48,7 @@ public class ConvertDERtoPEM extends UserAction<java.lang.String>
 		derKey.getClass();
 		RSAKeyPairReader rsaKeyPairReader = new RSAKeyPairReader();
 		
-		try(	InputStream inputStream = Core.getFileDocumentContent(this.context(), __derKey);
+		try(	InputStream inputStream = Core.getFileDocumentContent(getContext(), __derKey);
 				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 				StringWriter stringWriter = new StringWriter();
 				PemWriter pemWriter = new PemWriter(stringWriter);) {
