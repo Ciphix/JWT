@@ -22,6 +22,7 @@ proxies
 /deployment/
 /packages/
 /releases/
+/vendorlib/
 /.mendix-cache/
 /.classpath
 /.project
@@ -34,7 +35,6 @@ proxies
 /**/node_modules/
 !/javascriptsource/**/node_modules/
 /nativemobile/builds/
-/vendorlib/temp/
 .DS_Store
 /.svn/
 /mprcontents/mprjournal*
