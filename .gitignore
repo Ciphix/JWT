@@ -38,3 +38,4 @@ proxies
 .DS_Store
 /.svn/
 /mprcontents/mprjournal*
+/vendorlib/temp/
