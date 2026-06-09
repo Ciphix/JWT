@@ -57,7 +57,7 @@ public class DecodeVerifyJWTPlainText extends UserAction<IMendixObject>
 	public IMendixObject executeAction() throws Exception
 	{
 		// BEGIN USER CODE
-		JWTDecoder jwtDecoder = new JWTDecoder(this.context(), token);
+		JWTDecoder jwtDecoder = new JWTDecoder(getContext(), token);
 		IMendixObject jwtPlainText = jwtDecoder.verifyAndDecodePlainText(secret, algorithm, claimsToVerify, publicKey, leeway);
 		return jwtPlainText;
 		// END USER CODE

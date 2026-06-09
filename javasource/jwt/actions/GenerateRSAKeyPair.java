@@ -41,7 +41,7 @@ public class GenerateRSAKeyPair extends UserAction<IMendixObject>
 	{
 		// BEGIN USER CODE
 		RSAKeyPairGenerator rsaKeyPairGenerator = new RSAKeyPairGenerator();
-		return rsaKeyPairGenerator.generate(this.context(), 2048, issuer, subject, Math.toIntExact(yearsValidity)).getMendixObject();
+		return rsaKeyPairGenerator.generate(getContext(), 2048, issuer, subject, Math.toIntExact(yearsValidity)).getMendixObject();
 		// END USER CODE
 	}
 

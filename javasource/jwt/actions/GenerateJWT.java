@@ -12,6 +12,7 @@ package jwt.actions;
 import java.security.interfaces.RSAPrivateKey;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -87,38 +88,33 @@ public class GenerateJWT extends UserAction<java.lang.String>
 		
 		if(privateKey != null) {
 			RSAKeyPairReader rsaKeyPairReader = new RSAKeyPairReader();
-			rsaPrivateKey = rsaKeyPairReader.getPrivateKey(this.context(), privateKey);
+			rsaPrivateKey = rsaKeyPairReader.getPrivateKey(getContext(), privateKey);
 		}
 		
 		Algorithm alg = new AlgorithmParser().parseAlgorithm(algorithm, secret, null, rsaPrivateKey);
 		logger.debug("Starting to gerenate JWT token with algorithm " + alg.getName() + ".");
 		
-		Builder builder = JWT.create()
-		        .withIssuer(jwtObject.getiss())
-		        .withExpiresAt(jwtObject.getexp())
-		        .withSubject(jwtObject.getsub())
-		        .withJWTId(jwtObject.getjti())
-		        .withNotBefore(jwtObject.getnbf())
-		        .withIssuedAt(jwtObject.getiat());
+		Builder builder = JWT.create();
+		Optional.ofNullable(jwtObject.getiss(getContext())).ifPresent(builder::withIssuer);
+		Optional.ofNullable(jwtObject.getexp(getContext())).ifPresent(builder::withExpiresAt);
+		Optional.ofNullable(jwtObject.getsub(getContext())).ifPresent(builder::withSubject);
+		Optional.ofNullable(jwtObject.getjti(getContext())).ifPresent(builder::withJWTId);
+		Optional.ofNullable(jwtObject.getnbf(getContext())).ifPresent(builder::withNotBefore);
+		Optional.ofNullable(jwtObject.getiat(getContext())).ifPresent(builder::withIssuedAt);
+		Optional.ofNullable(jwtObject.getkid(getContext())).ifPresent(builder::withKeyId);
 		
-		String kid = jwtObject.getkid();
-		
-		if (kid != null) {
-			builder.withKeyId(kid);
-		}
-		
-		String[] audienceList = new AudienceListToStringArrayConverter().convert(this.context(), jwtObject);
+		String[] audienceList = new AudienceListToStringArrayConverter().convert(getContext(), jwtObject);
 		logger.debug("Adding audience claim with " + audienceList.length + " audiences.");
-		builder.withAudience(audienceList);
+		Optional.ofNullable(audienceList).ifPresent(builder::withAudience);
 		
-		List<IMendixObject> claims = Core.retrieveByPath(this.context(), jwtObject.getMendixObject(), "JWT.Claim_JWT");
+		List<IMendixObject> claims = Core.retrieveByPath(getContext(), jwtObject.getMendixObject(), "JWT.Claim_JWT");
 		logger.debug("Adding " + claims.size() + " public claims.");
 		
 		Iterator<IMendixObject> claimIterator = claims.iterator();
 		
 		while(claimIterator.hasNext()) {
 			IMendixObject claimObject = claimIterator.next();
-			PublicClaim claim = PublicClaim.initialize(this.context(), claimObject);
+			PublicClaim claim = PublicClaim.initialize(getContext(), claimObject);
 			
 			if (claim.getClaim() == null) {
 				logger.error("Empty public claim found in JWT input object.");
@@ -135,22 +131,22 @@ public class GenerateJWT extends UserAction<java.lang.String>
 			logger.debug("Adding claim " + claim.getClaim() + " of entity " + claim.getClass().getSimpleName() + ".");
 			
 			if (claim.getClass() == PublicClaimBoolean.class) {
-				PublicClaimBoolean claimBoolean = PublicClaimBoolean.initialize(this.context(), claim.getMendixObject());
+				PublicClaimBoolean claimBoolean = PublicClaimBoolean.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimBoolean.getClaim(), claimBoolean.getValue());
 			} else if (claim.getClass() == PublicClaimDate.class) {
-				PublicClaimDate claimDate = PublicClaimDate.initialize(this.context(), claim.getMendixObject());
+				PublicClaimDate claimDate = PublicClaimDate.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimDate.getClaim(), claimDate.getValue());
 			} else if (claim.getClass() == PublicClaimInteger.class) {
-				PublicClaimInteger claimInteger = PublicClaimInteger.initialize(this.context(), claim.getMendixObject());
+				PublicClaimInteger claimInteger = PublicClaimInteger.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimInteger.getClaim(), claimInteger.getValue());
 			} else if (claim.getClass() == PublicClaimLong.class) {
-				PublicClaimLong claimLong = PublicClaimLong.initialize(this.context(), claim.getMendixObject());
+				PublicClaimLong claimLong = PublicClaimLong.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimLong.getClaim(), claimLong.getValue());
 			} else if (claim.getClass() == PublicClaimDecimal.class) {
-				PublicClaimDecimal claimDecimal = PublicClaimDecimal.initialize(this.context(), claim.getMendixObject());
+				PublicClaimDecimal claimDecimal = PublicClaimDecimal.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimDecimal.getClaim(), claimDecimal.getValue().doubleValue());
 			} else if (claim.getClass() == PublicClaimString.class) {
-				PublicClaimString claimString = PublicClaimString.initialize(this.context(), claim.getMendixObject());
+				PublicClaimString claimString = PublicClaimString.initialize(getContext(), claim.getMendixObject());
 				builder.withClaim(claimString.getClaim(), claimString.getValue());
 			} else {
 				logger.warn("Incorrect specialization of PublicClaim detected for claim " + claim.getClaim() + ".");
